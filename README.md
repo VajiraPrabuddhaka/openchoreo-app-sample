@@ -1,25 +1,49 @@
 # Todo Management Application
 
-A full-stack Todo/Task Management application built with React (TypeScript) frontend and Go backend.
+A full-stack Todo/Task Management application with **two frontend implementations**: React Client-Side Rendering (CSR) and Go Server-Side Rendering (SSR), both sharing the same Go backend.
 
 ## Features
 
 - ✅ Create, read, update, and delete todos
 - ✅ Mark todos as complete/incomplete
-- ✅ Priority levels (Low, Medium, High)
+- ✅ Priority levels (Low, Medium, High) with visual indicators
 - ✅ Filter todos by status (All, Active, Completed)
-- ✅ Clean and responsive UI with Tailwind CSS
-- ✅ Real-time updates
-- ✅ Environment variable configuration for backend URL
+- ✅ Clean and responsive UI
+- ✅ Docker containerization with multi-architecture support
+- ✅ Environment variable configuration
+- ✅ Health checks and monitoring
+
+## Architecture Options
+
+Choose between two frontend implementations:
+
+### Option 1: Client-Side Rendering (CSR)
+- **Frontend**: React 18 with TypeScript
+- **Pros**: Rich interactivity, modern development experience
+- **Best for**: Interactive web applications, SPAs
+
+### Option 2: Server-Side Rendering (SSR) 
+- **Frontend**: Go with HTML templates
+- **Pros**: Faster initial load, better SEO, simpler deployment
+- **Best for**: Content-focused applications, better performance
 
 ## Technology Stack
 
-### Frontend (`frontend/`)
+### Frontend Options
+
+#### CSR Frontend (`frontend/`)
 - **React 18** with TypeScript
 - **Vite** for development and build
-- **Tailwind CSS** for styling
+- **Custom CSS** (removed Tailwind due to PostCSS conflicts)
 - **Axios** for API calls
 - **Lucide React** for icons
+
+#### SSR Frontend (`frontend-ssr-go/`)
+- **Go** with Gorilla Mux router
+- **HTML templates** with Go templating
+- **Custom CSS** matching React styling
+- **HTTP client** for API integration
+- **Lucide icons** via CDN
 
 ### Backend (`backend/`)
 - **Go** with Gin web framework
@@ -36,6 +60,8 @@ A full-stack Todo/Task Management application built with React (TypeScript) fron
 
 ### Running the Application
 
+#### Option 1: React CSR Frontend
+
 1. **Start the Backend Server**
    ```bash
    cd backend
@@ -44,24 +70,62 @@ A full-stack Todo/Task Management application built with React (TypeScript) fron
    ```
    The backend will start on `http://localhost:8080`
 
-2. **Start the Frontend Development Server**
+2. **Start the React Frontend**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
-   The frontend will start on `http://localhost:5173`
+   The React frontend will start on `http://localhost:5173`
 
 3. **Open your browser** and navigate to `http://localhost:5173`
+
+#### Option 2: Go SSR Frontend
+
+1. **Start the Backend Server** (same as above)
+   ```bash
+   cd backend
+   go mod tidy
+   go run main.go
+   ```
+
+2. **Start the Go SSR Frontend**
+   ```bash
+   cd frontend-ssr-go
+   go mod tidy
+   API_URL=http://localhost:8080 PORT=3001 go run main.go
+   ```
+   The Go SSR frontend will start on `http://localhost:3001`
+
+3. **Open your browser** and navigate to `http://localhost:3001`
+
+#### Docker Deployment
+
+**For React CSR:**
+```bash
+docker-compose up --build
+```
+- React Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+
+**For Go SSR:**
+```bash
+docker-compose -f docker-compose-ssr.yml up --build
+```
+- Go SSR Frontend: http://localhost:3001
+- Backend API: http://localhost:8080
 
 ## Configuration
 
 ### Environment Variables
 
-The frontend uses environment variables to configure the backend URL:
-
+#### React CSR Frontend
 - Copy `frontend/.env.example` to `frontend/.env`
 - Set `VITE_API_URL` to your backend URL (default: `http://localhost:8080`)
+
+#### Go SSR Frontend
+- `API_URL`: Backend API URL (default: `http://localhost:8080`)
+- `PORT`: Frontend server port (default: `3001`)
 
 ### API Endpoints
 
@@ -78,11 +142,20 @@ The backend exposes the following REST API endpoints:
 ## Development
 
 ### Frontend Development
+
+#### React CSR Frontend
 ```bash
 cd frontend
 npm run dev      # Start development server
 npm run build    # Build for production
 npm run preview  # Preview production build
+```
+
+#### Go SSR Frontend
+```bash
+cd frontend-ssr-go
+go run main.go   # Start development server
+go build         # Build for production
 ```
 
 ### Backend Development
@@ -96,24 +169,40 @@ go build         # Build for production
 
 ```
 openchoreo-app-sample/
-├── frontend/                 # React frontend application
+├── frontend/                    # React CSR frontend
 │   ├── src/
-│   │   ├── components/      # Reusable React components
-│   │   │   ├── AddTodo.tsx
-│   │   │   └── TodoItem.tsx
-│   │   ├── services/        # API service layer
-│   │   │   └── api.ts
-│   │   ├── App.tsx          # Main application component
-│   │   ├── main.tsx         # Application entry point
-│   │   └── index.css        # Global styles
-│   ├── .env.example         # Environment variables template
-│   ├── package.json         # Frontend dependencies
-│   └── tailwind.config.js   # Tailwind CSS configuration
-├── backend/                 # Go backend application
-│   ├── main.go             # Main application file
-│   ├── go.mod              # Go module file
-│   └── go.sum              # Go dependencies
-└── README.md               # Project documentation
+│   │   ├── components/         # React components
+│   │   │   ├── AddTodo.tsx     # Add todo form
+│   │   │   └── TodoItem.tsx    # Todo item card
+│   │   ├── services/           # API service layer
+│   │   │   └── api.ts          # Axios HTTP client
+│   │   ├── types/              # TypeScript definitions
+│   │   │   └── index.ts        # Todo interfaces
+│   │   ├── App.tsx             # Main React component
+│   │   ├── main.tsx            # Application entry point
+│   │   └── index.css           # Custom CSS styles
+│   ├── .env.example            # Environment template
+│   ├── package.json            # Dependencies
+│   ├── Dockerfile              # Container build
+│   └── nginx.conf              # Production config
+├── frontend-ssr-go/            # Go SSR frontend
+│   ├── templates/              # HTML templates
+│   │   └── index.html          # Main template
+│   ├── static/                 # Static assets
+│   │   └── css/style.css       # CSS styles
+│   ├── main.go                 # HTTP server
+│   ├── go.mod                  # Go module
+│   └── Dockerfile              # Container build
+├── backend/                    # Shared Go API backend
+│   ├── main.go                 # RESTful API server
+│   ├── go.mod                  # Go module
+│   ├── go.sum                  # Dependencies
+│   └── Dockerfile              # Container build
+├── docker-compose.yml          # CSR deployment
+├── docker-compose-ssr.yml      # SSR deployment
+├── CLAUDE.md                   # Development context
+├── DOCKER.md                   # Docker deployment guide
+└── README.md                   # Project documentation
 ```
 
 ## Features Overview
@@ -131,10 +220,23 @@ openchoreo-app-sample/
 - **Completed**: View only completed todos
 
 ### UI Features
-- Clean, modern design with Tailwind CSS
+- Clean, modern design with custom CSS
 - Responsive layout that works on desktop and mobile
 - Loading states and error handling
 - Progress indicator showing completed vs total tasks
+- Priority-based visual indicators (colors, icons, borders)
+- Form validation and user feedback
+
+### Performance Comparison
+
+| Feature | React CSR | Go SSR |
+|---------|-----------|--------|
+| **Initial Load** | Slower (JS bundle) | ⚡ Faster (pre-rendered) |
+| **SEO** | Limited | 🏆 Excellent |
+| **Interactivity** | Rich client-side | Traditional forms |
+| **Deployment** | Build process required | Single binary |
+| **Caching** | Client-side | Server/CDN friendly |
+| **Development** | Modern tooling | Simple templates |
 
 ## Next Steps
 

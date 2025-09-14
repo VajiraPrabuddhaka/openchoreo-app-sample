@@ -1,17 +1,30 @@
 # Claude Context: Todo Management Application
 
 ## Project Overview
-A full-stack Todo/Task Management application with React TypeScript frontend and Go backend. Features a clean, modern UI with priority-based visual indicators, CRUD operations, and real-time updates.
+A full-stack Todo/Task Management application with **dual frontend implementations**: React Client-Side Rendering (CSR) and Go Server-Side Rendering (SSR), both sharing the same Go backend. Features clean, modern UI with priority-based visual indicators, CRUD operations, and comprehensive Docker support.
 
 ## Architecture
 
-### Frontend (`frontend/`)
+### Frontend Options
+
+#### CSR Frontend (`frontend/`)
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Custom CSS (removed Tailwind due to PostCSS conflicts)
 - **HTTP Client**: Axios
 - **Icons**: Lucide React
 - **Development Server**: http://localhost:5173
+- **Production**: Nginx serving static files
+
+#### SSR Frontend (`frontend-ssr-go/`)
+- **Language**: Go
+- **Router**: Gorilla Mux
+- **Templating**: Go html/template
+- **Styling**: Custom CSS (matching React styles)
+- **HTTP Client**: Go standard library
+- **Icons**: Lucide via CDN
+- **Development Server**: http://localhost:3001
+- **Production**: Single Go binary
 
 ### Backend (`backend/`)
 - **Language**: Go
@@ -19,6 +32,7 @@ A full-stack Todo/Task Management application with React TypeScript frontend and
 - **CORS**: gin-contrib/cors
 - **Storage**: In-memory (for simplicity)
 - **Server Port**: http://localhost:8080
+- **Shared by both frontends**
 
 ## Key Features
 
@@ -42,34 +56,45 @@ A full-stack Todo/Task Management application with React TypeScript frontend and
 
 ```
 openchoreo-app-sample/
-├── frontend/                 # React frontend application
+├── frontend/                    # React CSR frontend
 │   ├── src/
-│   │   ├── components/      # React components
-│   │   │   ├── AddTodo.tsx  # Add new todo form component
-│   │   │   └── TodoItem.tsx # Individual todo card component
-│   │   ├── services/        # API service layer
-│   │   │   └── api.ts       # Axios-based API client
-│   │   ├── types/           # TypeScript type definitions
-│   │   │   └── index.ts     # Todo-related interfaces
-│   │   ├── App.tsx          # Main application component
-│   │   ├── main.tsx         # Application entry point
-│   │   └── index.css        # Global styles (custom CSS)
-│   ├── .env                 # Environment variables
-│   ├── .env.example         # Environment template
-│   ├── package.json         # Frontend dependencies
-│   ├── Dockerfile          # Frontend container configuration
-│   ├── .dockerignore       # Docker build optimization
-│   └── nginx.conf          # Nginx configuration for production
-├── backend/                 # Go backend application
-│   ├── main.go             # Main application file with all endpoints
-│   ├── go.mod              # Go module file
-│   ├── go.sum              # Go dependencies
-│   ├── Dockerfile          # Backend container configuration
-│   └── .dockerignore       # Docker build optimization
-├── docker-compose.yml      # Multi-service orchestration
-├── README.md               # Project documentation
-├── DOCKER.md               # Docker deployment guide
-└── CLAUDE.md               # This context file
+│   │   ├── components/         # React components
+│   │   │   ├── AddTodo.tsx     # Add new todo form component
+│   │   │   └── TodoItem.tsx    # Individual todo card component
+│   │   ├── services/           # API service layer
+│   │   │   └── api.ts          # Axios-based API client
+│   │   ├── types/              # TypeScript type definitions
+│   │   │   └── index.ts        # Todo-related interfaces
+│   │   ├── App.tsx             # Main application component
+│   │   ├── main.tsx            # Application entry point
+│   │   └── index.css           # Global styles (custom CSS)
+│   ├── .env                    # Environment variables
+│   ├── .env.example            # Environment template
+│   ├── package.json            # Frontend dependencies
+│   ├── Dockerfile              # Frontend container configuration
+│   ├── .dockerignore           # Docker build optimization
+│   └── nginx.conf              # Nginx configuration for production
+├── frontend-ssr-go/            # Go SSR frontend
+│   ├── templates/              # HTML templates
+│   │   └── index.html          # Main page template
+│   ├── static/                 # Static assets
+│   │   └── css/style.css       # CSS styles (matching React)
+│   ├── main.go                 # HTTP server with routing and handlers
+│   ├── go.mod                  # Go module file
+│   ├── go.sum                  # Go dependencies
+│   ├── Dockerfile              # SSR container configuration
+│   └── .dockerignore           # Docker build optimization
+├── backend/                    # Shared Go API backend
+│   ├── main.go                 # Main application file with all endpoints
+│   ├── go.mod                  # Go module file
+│   ├── go.sum                  # Go dependencies
+│   ├── Dockerfile              # Backend container configuration
+│   └── .dockerignore           # Docker build optimization
+├── docker-compose.yml          # CSR deployment orchestration
+├── docker-compose-ssr.yml      # SSR deployment orchestration
+├── README.md                   # Project documentation
+├── DOCKER.md                   # Docker deployment guide
+└── CLAUDE.md                   # This context file
 ```
 
 ## API Endpoints
@@ -103,30 +128,9 @@ type Todo struct {
 
 ### Running the Application
 
-#### Option 1: Docker (Recommended for Production)
+#### Option 1: React CSR Frontend
 
-1. **Using Docker Compose** (simplest):
-   ```bash
-   docker-compose up --build
-   ```
-   - Frontend: http://localhost:3000
-   - Backend: http://localhost:8080
-
-2. **Individual Docker containers**:
-   ```bash
-   # Backend
-   cd backend
-   docker build -t todo-backend .
-   docker run -p 8080:8080 todo-backend
-   
-   # Frontend
-   cd frontend
-   docker build -t todo-frontend .
-   docker run -p 3000:8080 -e VITE_API_URL=http://localhost:8080 todo-frontend
-   ```
-
-#### Option 2: Local Development
-
+**Local Development**:
 1. **Start Backend**:
    ```bash
    cd backend
@@ -134,36 +138,95 @@ type Todo struct {
    ```
    Backend runs on http://localhost:8080
 
-2. **Start Frontend**:
+2. **Start React Frontend**:
    ```bash
    cd frontend
    npm run dev
    ```
-   Frontend runs on http://localhost:5173
+   React frontend runs on http://localhost:5173
+
+**Docker Deployment**:
+```bash
+docker-compose up --build
+```
+- React Frontend: http://localhost:3000
+- Backend: http://localhost:8080
+
+#### Option 2: Go SSR Frontend
+
+**Local Development**:
+1. **Start Backend** (same as above):
+   ```bash
+   cd backend
+   go run main.go
+   ```
+
+2. **Start Go SSR Frontend**:
+   ```bash
+   cd frontend-ssr-go
+   API_URL=http://localhost:8080 PORT=3001 go run main.go
+   ```
+   Go SSR frontend runs on http://localhost:3001
+
+**Docker Deployment**:
+```bash
+docker-compose -f docker-compose-ssr.yml up --build
+```
+- Go SSR Frontend: http://localhost:3001
+- Backend: http://localhost:8080
 
 ### Environment Configuration
-- Frontend uses `VITE_API_URL` environment variable
+
+#### React CSR Frontend
+- Uses `VITE_API_URL` environment variable
 - Default backend URL: `http://localhost:8080`
 - See `.env.example` for configuration template
 
+#### Go SSR Frontend
+- Uses `API_URL` environment variable for backend URL
+- Uses `PORT` environment variable for server port
+- Defaults: API_URL=http://localhost:8080, PORT=3001
+
 ## Key Components
 
-### TodoItem.tsx
+### React CSR Components
+
+#### TodoItem.tsx
 - Individual todo card with priority indicators
 - Inline editing capability
 - Priority-based visual styling (borders, colors, icons)
 - Compact action buttons (edit/delete)
 
-### AddTodo.tsx
+#### AddTodo.tsx
 - Expandable form for creating new todos
 - Priority selection dropdown
 - Form validation and submission
 
-### App.tsx
+#### App.tsx
 - Main application container
 - State management for todos
 - API integration
 - Filtering and display logic
+
+### Go SSR Components
+
+#### main.go
+- HTTP server with Gorilla Mux routing
+- Request handlers for all CRUD operations
+- API client for backend communication
+- Template rendering and error handling
+
+#### templates/index.html
+- Complete HTML template with Go templating syntax
+- Server-side rendering of todo list
+- Form handling for create/update/delete operations
+- Priority-based styling and filtering
+
+#### static/css/style.css
+- Custom CSS matching React app styling
+- Priority color coding and visual indicators
+- Responsive design and form styling
+- Icon button and filter styling
 
 ## Styling Approach
 
