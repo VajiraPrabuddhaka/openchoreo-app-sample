@@ -1,0 +1,19 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Service
+metadata:
+  name: todo-app-backend
+spec:
+  owner:
+    componentName: todo-app-backend
+    projectName: default
+  workloadName: todo-app-backend
+  overrides: { }
+  className: default
+  apis:
+    todo-manager-api:
+      type: REST
+      rest:
+        backend:
+          port: 8080
+          basePath: /api/v1
+        exposeLevels: [ "Organization", "Public" ]

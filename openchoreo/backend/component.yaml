@@ -1,0 +1,8 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: todo-app-backend
+spec:
+  owner:
+    projectName: default
+  type: Service

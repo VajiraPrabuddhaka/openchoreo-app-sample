@@ -1,0 +1,32 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Workload
+metadata:
+  name: todo-app-frontend
+spec:
+  owner:
+    componentName: todo-app-frontend
+    projectName: default
+  containers:
+    main:
+      image: docker.io/vajiraprabuddhaka/todo-manager-frontend-ssr:latest
+      env:
+        - key: LOG_LEVEL
+          value: "info"
+        - key: PORT
+          value: "3000"
+  endpoints:
+    http-endpoint:
+      type: HTTP
+      port: 3000
+
+  connections:
+    todo-app-backend:
+      type: api
+      params:
+        projectName: default
+        componentName: todo-app-backend
+        endpoint: todo-manager-api
+      inject:
+        env:
+          - name: API_URL
+            value: "http://{{ .host }}:{{ .port }}"

@@ -1,0 +1,10 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: WebApplication
+metadata:
+  name: todo-app-frontend
+spec:
+  owner:
+    componentName: todo-app-frontend
+    projectName: default
+  workloadName: todo-app-frontend
+  overrides: {}
